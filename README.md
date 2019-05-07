@@ -1,3 +1,5 @@
+chmod +x *.sh passgen passhashgen
+
 ./0.recover_tools.sh etcd/0 etcd/2 machine-2
 
 ./1.recover_charm.sh etcd/0 etcd/2 etcd-378 controller 0 machine-2 machine-4
