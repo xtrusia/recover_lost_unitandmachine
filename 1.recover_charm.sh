@@ -72,6 +72,8 @@ sed -i "s/nonce\:.*/nonce\: $nonce/g" tmp/agents/$machine/agent.conf
 
 #copy to broken node
 
+juju ssh $unit -o LogLevel=QUIET "sudo mkdir -p /var/lib/juju/agents/"
+
 juju scp -- -o LogLevel=QUIET -r tmp/agents/$unit_dir_fmt $unit:~/
 juju ssh $unit -o LogLevel=QUIET "sudo cp -a ~/$unit_dir_fmt /var/lib/juju/agents/"
 
