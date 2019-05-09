@@ -17,6 +17,8 @@ origin_machine=${7:-machine-8}
 machineid=(${machine//-/ })
 machineid=${machineid[1]}
 
+modeluuid=${8:-85a15bb6-1fd0-4e6f-8e0f-680f7d66a7b1}
+
 origin_unit_dir_fmt=unit-${origin_unit/\//-}
 unit_dir_fmt=unit-${unit/\//-}
 
@@ -57,10 +59,10 @@ read -d '' -r cmds <<'EOF'
 conf=/var/lib/juju/agents/machine-*/agent.conf
 user=`sudo grep tag $conf | cut -d' ' -f2`
 password=`sudo grep statepassword $conf | cut -d' ' -f2`
-/usr/bin/mongo 127.0.0.1:37017/juju --authenticationDatabase admin --ssl --sslAllowInvalidCertificates --sslAllowInvalidHostnames --username "$user" --password "$password" \
+/usr/lib/juju/mongo*/bin/mongo 127.0.0.1:37017/juju --authenticationDatabase admin --ssl --sslAllowInvalidCertificates --sslAllowInvalidHostnames --username "$user" --password "$password" \
 --eval "db.machines.find({machineid:'
 EOF
-cmds="$cmds$machineid'}, {nonce:1})\""
+cmds="$cmds$machineid', \"model-uuid\": \"$modeluuid\"}, {nonce:1})\""
 
 nonce=`juju ssh -m $controller $cmachine -o LogLevel=QUIET "$cmds" | sed '6q;d' | jq -r '.nonce'`
 
@@ -87,10 +89,10 @@ read -d '' -r cmds <<'EOF'
 conf=/var/lib/juju/agents/machine-*/agent.conf
 user=`sudo grep tag $conf | cut -d' ' -f2`
 password=`sudo grep statepassword $conf | cut -d' ' -f2`
-/usr/bin/mongo 127.0.0.1:37017/juju --authenticationDatabase admin --ssl --sslAllowInvalidCertificates --sslAllowInvalidHostnames --username "$user" --password "$password" \
+/usr/lib/juju/mongo*/bin/mongo 127.0.0.1:37017/juju --authenticationDatabase admin --ssl --sslAllowInvalidCertificates --sslAllowInvalidHostnames --username "$user" --password "$password" \
 --eval 'db.units.update({name:"
 EOF
-cmds="$cmds$unit\"}, { \$set: { passwordhash: \"$passhash\"}})'"
+cmds="$cmds$unit\", \"model-uuid\": \"$modeluuid\"}, { \$set: { passwordhash: \"$passhash\"}})'"
 
 echo $cmds
 
@@ -102,10 +104,10 @@ read -d '' -r cmds <<'EOF'
 conf=/var/lib/juju/agents/machine-*/agent.conf
 user=`sudo grep tag $conf | cut -d' ' -f2`
 password=`sudo grep statepassword $conf | cut -d' ' -f2`
-/usr/bin/mongo 127.0.0.1:37017/juju --authenticationDatabase admin --ssl --sslAllowInvalidCertificates --sslAllowInvalidHostnames --username "$user" --password "$password" \
+/usr/lib/juju/mongo*/bin/mongo 127.0.0.1:37017/juju --authenticationDatabase admin --ssl --sslAllowInvalidCertificates --sslAllowInvalidHostnames --username "$user" --password "$password" \
 --eval 'db.machines.update({machineid:"
 EOF
-cmds="$cmds$machineid\"}, { \$set: { passwordhash: \"$passhash2\"}})'"
+cmds="$cmds$machineid\", \"model-uuid\": \"$modeluuid\"}, { \$set: { passwordhash: \"$passhash2\"}})'"
 
 echo $cmds
 
