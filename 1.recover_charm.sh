@@ -17,7 +17,7 @@ origin_machine=${7:-machine-8}
 machineid=(${machine//-/ })
 machineid=${machineid[1]}
 
-modeluuid=${8:-85a15bb6-1fd0-4e6f-8e0f-680f7d66a7b1}
+modeluuid=${8:-00f679ad-6797-47dc-8fc5-f4ea2b47bf87}
 
 origin_unit_dir_fmt=unit-${origin_unit/\//-}
 unit_dir_fmt=unit-${unit/\//-}
@@ -59,12 +59,20 @@ read -d '' -r cmds <<'EOF'
 conf=/var/lib/juju/agents/machine-*/agent.conf
 user=`sudo grep tag $conf | cut -d' ' -f2`
 password=`sudo grep statepassword $conf | cut -d' ' -f2`
-/usr/lib/juju/mongo*/bin/mongo 127.0.0.1:37017/juju --authenticationDatabase admin --ssl --sslAllowInvalidCertificates --sslAllowInvalidHostnames --username "$user" --password "$password" \
---eval "db.machines.find({machineid:'
+release=`cat /etc/os-release | sed -ne '/UBUNTU_CODENAME=\(.*\)/{ s//\1/p }'`
+if [ "$release" == "bionic" ]; then
+  echo "Bionic"
+  mongopath="/usr/bin/mongo"
+else
+  echo "Xenial"
+  mongopath="/usr/lib/juju/mongo*/bin/mongo"
+fi
+$mongopath 127.0.0.1:37017/juju --authenticationDatabase admin --ssl --sslAllowInvalidCertificates --sslAllowInvalidHostnames --username "$user" --password "$password" \
+--eval 'db.machines.find({machineid:"
 EOF
-cmds="$cmds$machineid', \"model-uuid\": \"$modeluuid\"}, {nonce:1})\""
+cmds="$cmds$machineid\", \"model-uuid\": \"$modeluuid\"}, {nonce:1})'"
 
-nonce=`juju ssh -m $controller $cmachine -o LogLevel=QUIET "$cmds" | sed '6q;d' | jq -r '.nonce'`
+nonce=`juju ssh -m $controller $cmachine -o LogLevel=QUIET "$cmds" | sed '7q;d' | jq -r '.nonce'`
 
 echo "nonce : $nonce"
 
@@ -89,12 +97,18 @@ read -d '' -r cmds <<'EOF'
 conf=/var/lib/juju/agents/machine-*/agent.conf
 user=`sudo grep tag $conf | cut -d' ' -f2`
 password=`sudo grep statepassword $conf | cut -d' ' -f2`
-/usr/lib/juju/mongo*/bin/mongo 127.0.0.1:37017/juju --authenticationDatabase admin --ssl --sslAllowInvalidCertificates --sslAllowInvalidHostnames --username "$user" --password "$password" \
+release=`cat /etc/os-release | sed -ne '/UBUNTU_CODENAME=\(.*\)/{ s//\1/p }'`
+if [ "$release" == "bionic" ]; then
+  echo "Bionic"
+  mongopath="/usr/bin/mongo"
+else
+  echo "Xenial"
+  mongopath="/usr/lib/juju/mongo*/bin/mongo"
+fi
+$mongopath 127.0.0.1:37017/juju --authenticationDatabase admin --ssl --sslAllowInvalidCertificates --sslAllowInvalidHostnames --username "$user" --password "$password" \
 --eval 'db.units.update({name:"
 EOF
 cmds="$cmds$unit\", \"model-uuid\": \"$modeluuid\"}, { \$set: { passwordhash: \"$passhash\"}})'"
-
-echo $cmds
 
 juju ssh -m $controller $cmachine -o LogLevel=QUIET "$cmds"
 
@@ -104,11 +118,17 @@ read -d '' -r cmds <<'EOF'
 conf=/var/lib/juju/agents/machine-*/agent.conf
 user=`sudo grep tag $conf | cut -d' ' -f2`
 password=`sudo grep statepassword $conf | cut -d' ' -f2`
-/usr/lib/juju/mongo*/bin/mongo 127.0.0.1:37017/juju --authenticationDatabase admin --ssl --sslAllowInvalidCertificates --sslAllowInvalidHostnames --username "$user" --password "$password" \
+release=`cat /etc/os-release | sed -ne '/UBUNTU_CODENAME=\(.*\)/{ s//\1/p }'`
+if [ "$release" == "bionic" ]; then
+  echo "Bionic"
+  mongopath="/usr/bin/mongo"
+else
+  echo "Xenial"
+  mongopath="/usr/lib/juju/mongo*/bin/mongo"
+fi
+$mongopath 127.0.0.1:37017/juju --authenticationDatabase admin --ssl --sslAllowInvalidCertificates --sslAllowInvalidHostnames --username "$user" --password "$password" \
 --eval 'db.machines.update({machineid:"
 EOF
 cmds="$cmds$machineid\", \"model-uuid\": \"$modeluuid\"}, { \$set: { passwordhash: \"$passhash2\"}})'"
-
-echo $cmds
 
 juju ssh -m $controller $cmachine -o LogLevel=QUIET "$cmds"

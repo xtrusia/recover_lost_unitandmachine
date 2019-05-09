@@ -1,10 +1,8 @@
 #!/bin/bash
 
 unit=${1:-etcd/0}
-origin_unit=${2:-etcd/2}
-machine=${3:-machine-6}
+machine=${2:-machine-6}
 
-origin_unit_dir_fmt=unit-${origin_unit/\//-}
 unit_dir_fmt=unit-${unit/\//-}
 
 #restart daemons

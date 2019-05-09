@@ -1,5 +1,7 @@
 #!/bin/bash
 
+# need to be fixed for xenial, tested only for bionic
+
 unit=${1:-etcd/0}
 origin_unit=${2:-etcd/2}
 
