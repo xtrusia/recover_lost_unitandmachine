@@ -1,3 +1,7 @@
+This is not prepared for xenial yet.
+
+
+
 chmod +x *.sh passgen passhashgen
 
 ./0.recover_tools.sh etcd/0 etcd/2 machine-2
